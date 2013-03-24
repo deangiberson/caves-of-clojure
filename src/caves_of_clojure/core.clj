@@ -1,5 +1,6 @@
 (ns caves_of_clojure.core
-  (:use [caves_of_clojure.world :only [random-world]])
+  (:use [caves_of_clojure.world :only [random-world
+                                       smooth-world]])
   (:require [lanterna.screen :as s]))
 
 (def screen-size [80 24])
@@ -9,8 +10,8 @@
 
 (defn clear-screen [screen]
   (let [[cols rows] screen-size
-        blank (apply str (repeat 80 \space))]
-    (doseq [row (range 24)]
+        blank (apply str (repeat cols \space))]
+    (doseq [row (range rows)]
       (s/put-string screen 0 row blank))))
 
 (defmulti draw-ui
@@ -74,6 +75,7 @@
   (case input
     :enter     (assoc game :uis [(new UI :win)])
     :backspace (assoc game :uis [(new UI :lose)])
+    \s         (assoc game :world (smooth-world (:world game)))
     game))
 
 (defn get-input [game screen]
