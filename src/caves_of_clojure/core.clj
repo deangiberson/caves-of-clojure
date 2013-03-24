@@ -30,21 +30,33 @@
   (s/put-string screen 0 0 "Sorry, better luck next time.")
   (s/put-string screen 0 1 "Press escape to exit, anything else to respawn."))
 
-(defmethod draw-ui :play [ui {{:keys [tiles]} :world :as game} screen]
-  (let [[cols rows] screen-size
+(defn draw-world [screen vrows vcols start-x start-y end-x end-y tiles]
+  (doseq [[vrow-idx mrow-idx] (map vector
+                                   (range 0 vrows)
+                                   (range start-y end-y))
+          :let [row-tiles (subvec (tiles mrow-idx) start-x end-x)]]
+    (doseq [vcol-idx (range vcols)
+            :let [{:keys [glyph color]} (row-tiles vcol-idx)]]
+      (s/put-string screen vcol-idx vrow-idx glyph {:fg color}))))
+
+(defn draw-crosshairs [screen vcols vrows]
+  (let [crosshair-x (int (/ vcols 2))
+        crosshair-y (int (/ vrows 2))]
+    (s/put-string screen crosshair-x crosshair-y "X" {:fg :red})
+    (s/move-cursor screen crosshair-x crosshair-y)))
+
+(defmethod draw-ui :play [ui game screen]
+  (let [world (:world game)
+        tiles (:tiles world)
+        [cols rows] screen-size
         vcols cols
         vrows (dec rows)
         start-x 0
         start-y 0
         end-x (+ start-x vcols)
         end-y (+ start-y vrows)]
-    (doseq [[vrow-idx mrow-idx] (map vector
-                                     (range 0 vrows)
-                                     (range start-y end-y))
-            :let [row-tiles (subvec (tiles mrow-idx) start-x end-x)]]
-      (doseq [vcol-idx (range vcols)
-              :let [{:keys [glyph color]} (row-tiles vcol-idx)]]
-        (s/put-string screen vcol-idx vrow-idx glyph {:fg color})))))
+    (draw-world screen vrows vcols start-x start-y end-x end-y tiles)
+    (draw-crosshairs screen vcols vrows)))
 
 (defn draw-game [game screen]
   (clear-screen screen)
