@@ -37,7 +37,7 @@
 (defn block-coords [x y]
   (for [dx [-1 0 1]
         dy [-1 0 1]]
-    [(+ x dx) (+ y dx)]))
+    [(+ x dx) (+ y dy)]))
 
 (defn get-block [tiles x y]
   (map (fn [[x y]]
