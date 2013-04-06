@@ -1,19 +1,25 @@
 (ns caves_of_clojure.ui.input
   (:use [caves_of_clojure.world :only [random-world smooth-world]]
-        [caves_of_clojure.ui.core :only [->UI]])
+        [caves_of_clojure.ui.core :only [->UI]]
+        [caves_of_clojure.entities.player :only [move-player make-player]])
   (:require [lanterna.screen :as s]))
 
 (defn move [[x y] [dx dy]]
   [(+ x dx) (+ y dy)])
+
+(defn reset-game [game]
+  (let [fresh-world (random-world)]
+    (-> game
+        (assoc :world (random-world))
+        (assoc-in [:world :player] (make-player fresh-world))
+        (assoc :uis [(->UI :play)]))))
 
 (defmulti process-input
   (fn [game input]
     (:kind (last (:uis game)))))
 
 (defmethod process-input :start [game input]
-  (-> game
-      (assoc :world (random-world))
-      (assoc :uis [(->UI :play)])))
+  (reset-game game))
 
 (defmethod process-input :win [game input]
   (if (= input :escape)
@@ -31,17 +37,16 @@
     :backspace (assoc game :uis [(->UI :lose)])
     \q         (assoc game :uis [])
 
-    \s         (update-in game [:world] smooth-world)
+    ;\s         (update-in game [:world] smooth-world)
 
-    \h         (update-in game [:location] move [-1 0])
-    \j         (update-in game [:location] move [0 1])
-    \k         (update-in game [:location] move [0 -1])
-    \l         (update-in game [:location] move [1 0])
-
-    \H         (update-in game [:location] move [-5 0])
-    \J         (update-in game [:location] move [0 5])
-    \K         (update-in game [:location] move [0 -5])
-    \L         (update-in game [:location] move [5 0])
+    \h         (update-in game [:world] move-player :w)
+    \j         (update-in game [:world] move-player :s)
+    \k         (update-in game [:world] move-player :n)
+    \l         (update-in game [:world] move-player :e)
+    \y         (update-in game [:world] move-player :nw)
+    \u         (update-in game [:world] move-player :ne)
+    \b         (update-in game [:world] move-player :sw)
+    \n         (update-in game [:world] move-player :se)
 
     game))
 

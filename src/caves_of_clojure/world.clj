@@ -58,6 +58,25 @@
 
 (defn random-world []
   (let [world (->World (random-tiles))
-        world (nth (iterate smooth-world world) 0)]
+        world (nth (iterate smooth-world world) 3)]
     world))
 
+(defn get-tile [world coord]
+  (get-tile-from-tiles (:tiles world) coord))
+
+(defn get-tile-kind [world coord]
+  (:kind (get-tile world coord)))
+
+(defn set-tile [world [x y] tile]
+  (assoc-in world [:tiles y x] tile))
+
+(defn set-tile-floor [world coord]
+  (set-tile world coord (:floor tiles)))
+
+
+
+(defn find-empty-tile [world]
+  (loop [coord (random-coordinate)]
+    (if (#{:floor} (get-tile-kind world coord))
+      coord
+      (recur (random-coordinate)))))
