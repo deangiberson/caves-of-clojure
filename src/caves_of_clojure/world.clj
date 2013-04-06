@@ -10,8 +10,12 @@
    :wall  (->Tile :wall  "#" :white)
    :bound (->Tile :bould "X" :black)})
 
-(defn get-tile [tiles x y]
+(defn get-tile-from-tiles [tiles [x y]]
   (get-in tiles [y x] (:bound tiles)))
+
+(defn random-coordinate []
+  (let [[cols rows] world-size]
+    [(rand-int cols) (rand-int rows)]))
 
 (defn random-tiles []
   (let [[cols rows] world-size]
@@ -20,29 +24,6 @@
             (random-row []
               (vec (repeatedly cols random-tile)))]
       (vec (repeatedly rows random-row)))))
-
-(defn print-row [row]
-  (println (apply str (map :glyph row))))
-
-(defn print-world [world]
-  (dorun (map print-row (:tiles world))))
-
-(declare get-smoothed-tiles get-smoothed-row)
-
-(defn get-smoothed-tiles [tiles]
-  (mapv (fn [y]
-          (get-smoothed-row tiles y))
-        (range (count tiles))))
-
-(defn block-coords [x y]
-  (for [dx [-1 0 1]
-        dy [-1 0 1]]
-    [(+ x dx) (+ y dy)]))
-
-(defn get-block [tiles x y]
-  (map (fn [[x y]]
-         (get-tile tiles x y))
-       (block-coords x y)))
 
 (defn get-smoothed-tile [block]
   (let [tile-counts (frequencies (map :kind block))
@@ -53,10 +34,24 @@
                  :wall)]
     (tiles result)))
 
+(defn block-coords [x y]
+  (for [dx [-1 0 1]
+        dy [-1 0 1]]
+    [(+ x dx) (+ y dy)]))
+
+(defn get-block [tiles x y]
+  (map (partial get-tile-from-tiles tiles)
+       (block-coords x y)))
+
 (defn get-smoothed-row [tiles y]
   (mapv (fn [x]
           (get-smoothed-tile (get-block tiles x y)))
         (range (count (first tiles)))))
+
+(defn get-smoothed-tiles [tiles]
+  (mapv (fn [y]
+          (get-smoothed-row tiles y))
+        (range (count tiles))))
 
 (defn smooth-world [{:keys [tiles] :as world}]
   (assoc world :tiles (get-smoothed-tiles tiles)))
