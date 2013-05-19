@@ -65,14 +65,15 @@
 
 (defn draw-hud [screen game start-x start-y]
   (let [hud-row (dec (second screen-size))
-        [x y] (get-in game [:world :player :location])
+        [x y] (get-in game [:world :entities :player :location])
         info (str "loc: [" x "-" y "]")
         info (str info " start: [" start-x "-" start-y "]")]
     (s/put-string screen 0 hud-row info)))
 
 (defmethod draw-ui :play [ui game screen]
   (let [world (:world game)
-        {:keys [tiles player]} world
+        {:keys [tiles entities]} world
+        {:keys [player]} entities
         [cols rows] screen-size
         vcols cols
         vrows (dec rows)
