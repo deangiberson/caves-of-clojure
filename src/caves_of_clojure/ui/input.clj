@@ -1,17 +1,28 @@
 (ns caves_of_clojure.ui.input
-  (:use [caves_of_clojure.world :only [random-world smooth-world]]
+  (:use [caves_of_clojure.world :only [random-world smooth-world find-empty-tile]]
         [caves_of_clojure.ui.core :only [->UI]]
-        [caves_of_clojure.entities.player :only [move-player make-player]])
+        [caves_of_clojure.entities.player :only [move-player make-player]]
+        [caves_of_clojure.entities.lichen :only [make-lichen]])
   (:require [lanterna.screen :as s]))
 
 (defn move [[x y] [dx dy]]
   [(+ x dx) (+ y dy)])
 
+(defn add-lichen [world]
+  (let [{:as lichen :keys [id]} (make-lichen (find-empty-tile world))]
+    (assoc-in world [:entities id] lichen)))
+
+(defn populate-world [world]
+  (let [world (assoc-in world [:entities :player]
+                        (make-player (find-empty-tile world)))
+        world (nth (iterate add-lichen world) 30)]
+    world))
+
 (defn reset-game [game]
   (let [fresh-world (random-world)]
     (-> game
         (assoc :world (random-world))
-        (assoc-in [:world :entities :player] (make-player fresh-world))
+        (update-in [:world] populate-world)
         (assoc :uis [(->UI :play)]))))
 
 (defmulti process-input

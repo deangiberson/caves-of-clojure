@@ -73,8 +73,6 @@
 (defn set-tile-floor [world coord]
   (set-tile world coord (:floor tiles)))
 
-
-
 (defn find-empty-tile [world]
   (loop [coord (random-coordinate)]
     (if (#{:floor} (get-tile-kind world coord))

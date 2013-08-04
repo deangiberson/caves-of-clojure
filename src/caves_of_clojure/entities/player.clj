@@ -5,7 +5,7 @@
         [caves_of_clojure.coords :only [destination-coords]]
         [caves_of_clojure.world :only [find-empty-tile get-tile-kind set-tile-floor]]))
 
-(defrecord Player [id glyph location])
+(defrecord Player [id glyph color location])
 
 (defn check-tile
   "Check that the tile at the destination passes the given
@@ -31,8 +31,8 @@
              (can-dig? [this world dest]
                (check-tile world dest #{:wall})))
 
-(defn make-player [world]
-  (->Player :player "@" (find-empty-tile world)))
+(defn make-player [location]
+  (->Player :player "@" :white location))
 
 (defn move-player [world dir]
   (let [player (get-in world [:entities :player])
