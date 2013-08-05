@@ -1,4 +1,5 @@
-(ns caves_of_clojure.world)
+(ns caves_of_clojure.world
+  (:use [caves_of_clojure.coords :only [neighbors]]))
 
 (def world-size [160 50])
 
@@ -78,3 +79,17 @@
     (if (#{:floor} (get-tile-kind world coord))
       coord
       (recur (random-coordinate)))))
+
+(defn get-entity-at [world coord]
+  (first (filter #(= coord (:location %))
+                 (vals (:entities world)))))
+
+(defn is-empty? [world coord]
+  (and (#{:floor} (get-tile-kind world coord))
+       (not (get-entity-at world coord))))
+
+(defn find-empty-neighbor [world coord]
+  (let [candidates (filter #(is-empty? world %) 
+                           (neighbors coord))]
+    (when (seq candidates)
+      (rand-nth candidates))))

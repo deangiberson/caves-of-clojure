@@ -33,8 +33,11 @@
         map-rows (count tiles)
         map-cols (count (first tiles))
 
-        start-x (max 0 (- center-x (int (/ vcols 2))))
-        start-y (max 0 (- center-y (int (/ vrows 2))))
+        start-x (- center-x (int (/ vcols 2)))
+        start-x (max 0 start-x)
+
+        start-y (- center-y (int (/ vrows 2)))
+        start-y (max 0 start-y)
 
         end-x (+ start-x vcols)
         end-x (min end-x map-cols)
@@ -45,7 +48,6 @@
         start-x (- end-x vcols)
         start-y (- end-y vrows)]
     [start-x start-y end-x end-y]))
-
 
 (defn draw-world [screen vrows vcols start-x start-y end-x end-y tiles]
   (doseq [[vrow-idx mrow-idx] (map vector
@@ -59,8 +61,11 @@
 (defn draw-entity [screen start-x start-y {:keys [location glyph color]}]
   (let [[entity-x entity-y] location
         x (- entity-x start-x)
-        y (- entity-y start-y)]
-    (s/put-string screen x y glyph {:fg color})))
+        y (- entity-y start-y)
+        [cols rows] screen-size]
+    (if (and (< x cols)
+             (< y rows))
+      (s/put-string screen x y glyph {:fg color}))))
 
 (defn highlight-player [screen start-x start-y player]
   (let [[player-x player-y] (:location player)

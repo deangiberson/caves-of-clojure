@@ -2,8 +2,10 @@
   (:use [caves_of_clojure.entities.core :only [Entity]]
         [caves_of_clojure.entities.aspects.mobile :only [Mobile move can-move?]]
         [caves_of_clojure.entities.aspects.digger :only [Digger dig can-dig?]]
+        [caves_of_clojure.entities.aspects.attacker :only [Attacker attack]]
+        [caves_of_clojure.entities.aspects.destructible :only [Destructible take-damage]]
         [caves_of_clojure.coords :only [destination-coords]]
-        [caves_of_clojure.world :only [find-empty-tile get-tile-kind set-tile-floor]]))
+        [caves_of_clojure.world :only [get-tile-kind set-tile-floor get-entity-at is-empty?]]))
 
 (defrecord Player [id glyph color location])
 
@@ -22,7 +24,7 @@
                {:pre [(can-move? this world dest)]}
                (assoc-in world [:entities :player :location] dest))
              (can-move? [this world dest]
-               (check-tile world dest #{:floor})))
+               (is-empty? world dest)))
 
 (extend-type Player Digger
              (dig [this world dest]
@@ -31,13 +33,21 @@
              (can-dig? [this world dest]
                (check-tile world dest #{:wall})))
 
+(extend-type Player Attacker
+             (attack [this world target]
+               {:pre [(satisfies? Destructible target)]}
+               (let [damage 1]
+                 (take-damage target world damage))))
+
 (defn make-player [location]
   (->Player :player "@" :white location))
 
 (defn move-player [world dir]
   (let [player (get-in world [:entities :player])
-        target (destination-coords (:location player) dir)]
+        target (destination-coords (:location player) dir)
+        entity-at-target (get-entity-at world target)]
     (cond
+     entity-at-target (attack player world entity-at-target)
      (can-move? player world target) (move player world target)
      (can-dig? player world target) (dig player world target)
      :else world)))
