@@ -14,11 +14,18 @@
   (reduce tick-entity world (vals (:entities world))))
 
 (defn run-game [game screen]
+  ;; (loop [{:keys [input uis] :as game} game]
+  ;;   (when (seq uis)
+  ;;     (draw-game game screen)
+  ;;     (if (nil? input)
+  ;;       (recur (get-input (update-in game [:world] tick-all) screen))
+  ;;       (recur (process-input (dissoc game :input) input))))))
   (loop [{:keys [input uis] :as game} game]
-    (when-not (empty? uis)
-      (draw-game game screen)
+    (when (seq uis)
       (if (nil? input)
-        (recur (get-input (update-in game [:world] tick-all) screen))
+        (let [game (update-in game [:world] tick-all)]
+          (draw-game game screen)
+          (recur (get-input game screen)))
         (recur (process-input (dissoc game :input) input))))))
 
 (defn new-game []

@@ -4,4 +4,6 @@
   :license {:name "MIT/X11"}
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [clojure-lanterna "0.9.3"]]
-  :main caves_of_clojure.core)
+  :repositories {"sonatype-snapshots" "https://oss.sonatype.org/content/repositories/snapshots"}
+  :main caves_of_clojure.core
+  :plugins [[lein-kibit "0.0.8"]])

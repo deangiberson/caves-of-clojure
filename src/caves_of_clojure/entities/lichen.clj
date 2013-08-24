@@ -27,5 +27,5 @@
              (take-damage [{:keys [id] :as this} world damage]
                (let [damaged-this (update-in this [:hp] - damage)]
                  (if-not (pos? (:hp damaged-this))
-                   (update-in world [:entities] dissoc id)
-                   (update-in world [:entities id] assoc damaged-this)))))
+                   (assoc-in world [:entities] dissoc id)
+                   (assoc-in world [:entities id] assoc damaged-this)))))

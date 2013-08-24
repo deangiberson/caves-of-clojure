@@ -5,7 +5,7 @@
 
 (defn clear-screen [screen]
   (let [[cols rows] screen-size
-        blank (apply str (repeat cols \space))]
+        blank (clojure.string/join (repeat cols \space))]
     (doseq [row (range rows)]
       (s/put-string screen 0 row blank))))
 
