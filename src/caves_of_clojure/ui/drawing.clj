@@ -2,29 +2,25 @@
   (:use [caves_of_clojure.utils :only (map2d shear)])
   (:require [lanterna.screen :as s]))
 
-(def screen-size [80 24])
-
-(defn clear-screen [screen]
-  (let [[cols rows] screen-size
-        blank (clojure.string/join (repeat cols \space))]
-    (doseq [row (range rows)]
-      (s/put-string screen 0 row blank))))
-
 (defmulti draw-ui
   (fn [ui game screen]
     (:kind ui)))
 
 (defmethod draw-ui :start [ui game screen]
-  (s/put-string screen 0 0 "Welcome to the Caves of Clojure!")
-  (s/put-string screen 0 1 "Press enter to win, anything else to lose."))
+  (s/put-sheet screen 0 0
+               ["Welcome to the Caves of Clojure!"
+                ""
+                "Press enter to win, anything else to lose."]))
 
 (defmethod draw-ui :win [ui game screen]
-  (s/put-string screen 0 0 "Congratulations, you win!")
-  (s/put-string screen 0 1 "Press escape to exit, anything else to respawn."))
+  (s/put-sheet screen 0 0 
+               ["Congratulations, you win!"
+                "Press escape to exit, anything else to respawn."]))
 
 (defmethod draw-ui :lose [ui game screen]
-  (s/put-string screen 0 0 "Sorry, better luck next time.")
-  (s/put-string screen 0 1 "Press escape to exit, anything else to respawn."))
+  (s/put-sheet screen 0 0 
+               ["Sorry, better luck next time."
+                "Press escape to exit, anything else to respawn."]))
 
 (defn get-viewport-coords [game player-location vcols vrows]
   (let [[center-x center-y] player-location
@@ -58,7 +54,7 @@
 
 (defn draw-world [screen vrows vcols [ox oy] tiles]
   (letfn [(render-tile [tile]
-            [(:glyph tile {:fg (:color tile)})])]
+            [(:glyph tile) {:fg (:color tile)}])]
     (let [tiles (shear tiles ox oy vcols vrows)
           sheet (map2d render-tile tiles)]
       (s/put-sheet screen 0 0 sheet))))
@@ -72,7 +68,7 @@
     (s/move-cursor screen x y)))
 
 (defn draw-hud [screen game [ox oy]]
-  (let [hud-row (dec (second screen-size))
+  (let [hud-row (dec (second (s/get-size screen)))
         [x y] (get-in game [:world :entities :player :location])
         info (str "player loc: [" x "-" y "]")
         info (str info " viewport origin: [" ox "-" oy "]")]
@@ -93,7 +89,7 @@
     (highlight-player screen origin player)))
 
 (defn draw-game [game screen]
-  (clear-screen screen)
+  (s/clear screen)
   (doseq [ui (:uis game)]
     (draw-ui ui game screen))
   (s/redraw screen))
