@@ -74,6 +74,12 @@
 (defn set-tile-floor [world coord]
   (set-tile world coord (:floor tiles)))
 
+(defn check-tile
+  "Check that the tile at the destination passes the given
+  predicate."
+  [world dest pred]
+  (pred (get-tile-kind world dest)))
+
 (defn get-entity-at [world coord]
   (first (filter #(= coord (:location %))
                  (vals (:entities world)))))
