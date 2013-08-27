@@ -1,4 +1,5 @@
 (ns caves_of_clojure.ui.drawing
+  (:use [caves_of_clojure.utils :only (map2d shear)])
   (:require [lanterna.screen :as s]))
 
 (def screen-size [80 24])
@@ -49,53 +50,47 @@
         start-y (- end-y vrows)]
     [start-x start-y end-x end-y]))
 
-(defn draw-world [screen vrows vcols start-x start-y end-x end-y tiles]
-  (doseq [[vrow-idx mrow-idx] (map vector
-                                   (range 0 vrows)
-                                   (range start-y end-y))
-          :let [row-tiles (subvec (tiles mrow-idx) start-x end-x)]]
-    (doseq [vcol-idx (range vcols)
-            :let [{:keys [glyph color]} (row-tiles vcol-idx)]]
-      (s/put-string screen vcol-idx vrow-idx glyph {:fg color}))))
+(defn get-viewport-coords-of
+  "Get the viewport coordinates for the given real coords, given the
+  viewport origin."
+  [origin coords]
+  (map - coords origin))
 
-(defn draw-entity [screen start-x start-y {:keys [location glyph color]}]
-  (let [[entity-x entity-y] location
-        x (- entity-x start-x)
-        y (- entity-y start-y)
-        [cols rows] screen-size]
-    (if (and (< x cols)
-             (< y rows))
-      (s/put-string screen x y glyph {:fg color}))))
+(defn draw-world [screen vrows vcols [ox oy] tiles]
+  (letfn [(render-tile [tile]
+            [(:glyph tile {:fg (:color tile)})])]
+    (let [tiles (shear tiles ox oy vcols vrows)
+          sheet (map2d render-tile tiles)]
+      (s/put-sheet screen 0 0 sheet))))
 
-(defn highlight-player [screen start-x start-y player]
-  (let [[player-x player-y] (:location player)
-        x (- player-x start-x)
-        y (- player-y start-y)]
+(defn draw-entity [screen origin {:keys [location glyph color]}]
+  (let [[x y] (get-viewport-coords-of origin location)]
+    (s/put-string screen x y glyph {:fg color})))
+
+(defn highlight-player [screen origin player]
+  (let [[x y] (get-viewport-coords-of origin (:location player))]
     (s/move-cursor screen x y)))
 
-(defn draw-hud [screen game start-x start-y]
+(defn draw-hud [screen game [ox oy]]
   (let [hud-row (dec (second screen-size))
         [x y] (get-in game [:world :entities :player :location])
-        info (str "loc: [" x "-" y "]")
-        info (str info " start: [" start-x "-" start-y "]")]
+        info (str "player loc: [" x "-" y "]")
+        info (str info " viewport origin: [" ox "-" oy "]")]
     (s/put-string screen 0 hud-row info)))
 
 (defmethod draw-ui :play [ui game screen]
   (let [world (:world game)
         {:keys [tiles entities]} world
         player (:player entities)
-        [cols rows] screen-size
+        [cols rows] (s/get-size screen)
         vcols cols
         vrows (dec rows)
-        [start-x start-y end-x end-y] (get-viewport-coords game 
-                                                           (:location player) 
-                                                           vcols 
-                                                           vrows)]
-    (draw-world screen vrows vcols start-x start-y end-x end-y tiles)
+        origin (get-viewport-coords game (:location player) vcols vrows)]
+    (draw-world screen vrows vcols origin tiles)
     (doseq [entity (vals entities)]
-      (draw-entity screen start-x start-y entity))
-    (draw-hud screen game start-x start-y)
-    (highlight-player screen start-x start-y player)))
+      (draw-entity screen origin entity))
+    (draw-hud screen game origin)
+    (highlight-player screen origin player)))
 
 (defn draw-game [game screen]
   (clear-screen screen)

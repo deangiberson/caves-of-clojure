@@ -1,7 +1,10 @@
-(ns caves_of_clojure.entities.aspects.mobile)
+(ns caves_of_clojure.entities.aspects.mobile
+  (:use [caves_of_clojure.entities.core :only [defaspect]]
+        [caves_of_clojure.world :only [is-empty?]]))
 
-(defprotocol Mobile
+(defaspect Mobile
   (move [this world dest]
-    "Move this entity to a new location.")
+    {:pre [(can-move? this world dest)]}
+    (assoc-in world [:entities (:id this) :location] dest))
   (can-move? [this world dest]
-    "Return whether the entity can mvoe to the new location."))
+    (is-empty? world dest)))

@@ -1,5 +1,5 @@
 (ns caves_of_clojure.entities.player
-  (:use [caves_of_clojure.entities.core :only [Entity]]
+  (:use [caves_of_clojure.entities.core :only [Entity add-aspect]]
         [caves_of_clojure.entities.aspects.mobile :only [Mobile move can-move?]]
         [caves_of_clojure.entities.aspects.digger :only [Digger dig can-dig?]]
         [caves_of_clojure.entities.aspects.attacker :only [Attacker attack]]
@@ -19,12 +19,7 @@
              (tick [this world]
                world))
 
-(extend-type Player Mobile
-             (move [this world dest]
-               {:pre [(can-move? this world dest)]}
-               (assoc-in world [:entities :player :location] dest))
-             (can-move? [this world dest]
-               (is-empty? world dest)))
+(add-aspect Player Mobile)
 
 (extend-type Player Digger
              (dig [this world dest]

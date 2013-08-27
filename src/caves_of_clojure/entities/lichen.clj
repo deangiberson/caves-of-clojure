@@ -1,5 +1,5 @@
 (ns caves_of_clojure.entities.lichen
-  (:use [caves_of_clojure.entities.core :only [Entity get-id]]
+  (:use [caves_of_clojure.entities.core :only [Entity get-id add-aspect]]
         [caves_of_clojure.entities.aspects.destructible :only [Destructible take-damage]]
         [caves_of_clojure.world :only [find-empty-neighbor]]))
 
@@ -23,9 +23,5 @@
                  (grow this world)
                  world)))
 
-(extend-type Lichen Destructible
-             (take-damage [{:keys [id] :as this} world damage]
-               (let [damaged-this (update-in this [:hp] - damage)]
-                 (if-not (pos? (:hp damaged-this))
-                   (assoc-in world [:entities] dissoc id)
-                   (assoc-in world [:entities id] assoc damaged-this)))))
+(add-aspect Lichen Destructible)
+
